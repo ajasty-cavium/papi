@@ -33,7 +33,7 @@ platform's documentation carefully.
 #define PAPI_NATIVE_AND_MASK 0xBFFFFFFF	/* this masks just the native bit */
 #define PAPI_UE_AND_MASK     0x3FFFFFFF
 
-#define PAPI_MAX_PRESET_EVENTS 128		/*The maxmimum number of preset events */
+#define PAPI_MAX_PRESET_EVENTS 256		/*The maxmimum number of preset events */
 #define PAPI_MAX_USER_EVENTS 50			/*The maxmimum number of user defined events */
 #define USER_EVENT_OPERATION_LEN 512	/*The maximum length of the operation string for user defined events */
 
@@ -164,6 +164,27 @@ enum
 	PAPI_VEC_SP_idx,		 /* Single precision vector/SIMD instructions */
 	PAPI_VEC_DP_idx,		 /* Double precision vector/SIMD instructions */
 	PAPI_REF_CYC_idx,		 /* Reference clock cycles */
+
+	PAPI_UOPS_RET_idx,   /* Uops retired */
+	PAPI_FUOPS_RET_idx,   /* fused-uops retired */
+	PAPI_LD_ORDER_FLUSH_idx, /* loads flushed by store/load ordering */
+	PAPI_ST_RMW_idx,     /* Store read-modify-writes */
+	PAPI_LL_DETECT_idx,  /* Live-lock detect */
+	PAPI_UNALIGN_LDST_RET_idx, /* Unaligned load-stores retired */
+  PAPI_LD_UNSAFE_RETRY_idx, /* Map unsafe load */
+	PAPI_LSU_FLUSH_idx,  /* LSU flush */
+
+	PAPI_MAP_ISB_EMPTY_idx, /* Map ISB full */
+	PAPI_MAP_ISB_FULL_idx, /* Map ISB full */
+	PAPI_MAP_ISB_STL_NOTEMPTY_idx, /* Map ISB full */
+	PAPI_MAP_LOOPS_ENTERED_idx, /* Map loops entered */
+	PAPI_MAP_LOOPS_ENDED_idx, /* Map loops ended */
+	PAPI_MAP_LOOPS_FLUSHED_idx, /* Map loops flushed */
+	PAPI_MAP_LOOP_UOPS_idx, /* Map loop uops */
+
+	PAPI_STALL_FRONTEND_idx,
+	PAPI_STALL_BACKEND_idx,
+
 	PAPI_END_idx			 /*This should always be last! */
 };
 
@@ -275,6 +296,26 @@ enum
 #define PAPI_VEC_SP  (PAPI_VEC_SP_idx  | PAPI_PRESET_MASK)	/* Single precision vector/SIMD instructions */
 #define PAPI_VEC_DP  (PAPI_VEC_DP_idx  | PAPI_PRESET_MASK)	/* Double precision vector/SIMD instructions */
 #define PAPI_REF_CYC (PAPI_REF_CYC_idx  | PAPI_PRESET_MASK)	/* Reference clock cycles */
+
+#define PAPI_FUOPS_RET (PAPI_FUOPS_RET_idx | PAPI_PRESET_MASK)    /* Uops retired */
+#define PAPI_UOPS_RET (PAPI_UOPS_RET_idx | PAPI_PRESET_MASK)    /* Uops retired */
+#define PAPI_LD_ORDER_FLUSH (PAPI_LD_ORDER_FLUSH_idx | PAPI_PRESET_MASK)  /* loads flushed by store/load ordering */
+#define PAPI_ST_RMW (PAPI_ST_RMW_idx | PAPI_PRESET_MASK)      /* Store read-modify-writes */
+#define PAPI_LL_DETECT (PAPI_LL_DETECT_idx | PAPI_PRESET_MASK)   /* Live-lock detect */
+#define PAPI_UNALIGN_LDST_RET (PAPI_UNALIGN_LDST_RET_idx | PAPI_PRESET_MASK)  /* Unaligned load-stores retired */
+#define PAPI_LD_UNSAFE_RETRY (PAPI_LD_UNSAFE_RETRY_idx | PAPI_PRESET_MASK)  /* Map unsafe load */
+#define PAPI_LSU_FLUSH (PAPI_LSU_FLUSH_idx | PAPI_PRESET_MASK)   /* LSU flush */
+
+#define PAPI_STALL_FRONTEND (PAPI_STALL_FRONTEND_idx | PAPI_PRESET_MASK) /* Frontend stall */
+#define PAPI_STALL_BACKEND (PAPI_STALL_BACKEND_idx | PAPI_PRESET_MASK) /* Frontend stall */
+
+#define PAPI_MAP_ISB_EMPTY (PAPI_MAP_ISB_EMPTY_idx | PAPI_PRESET_MASK)  /* Map ISB empty */
+#define PAPI_MAP_ISB_FULL (PAPI_MAP_ISB_FULL_idx | PAPI_PRESET_MASK)  /* Map ISB full */
+#define PAPI_MAP_ISB_STL_NOTEMPTY (PAPI_MAP_ISB_STL_NOTEMPTY_idx | PAPI_PRESET_MASK) /* Map ISB full */
+#define PAPI_MAP_LOOPS_ENTERED (PAPI_MAP_LOOPS_ENTERED_idx | PAPI_PRESET_MASK) /* Map loops entered */
+#define PAPI_MAP_LOOPS_ENDED (PAPI_MAP_LOOPS_ENDED_idx | PAPI_PRESET_MASK) /* Map loops entered */
+#define PAPI_MAP_LOOPS_FLUSHED (PAPI_MAP_LOOPS_FLUSHED_idx | PAPI_PRESET_MASK) /* Map loops entered */
+#define PAPI_MAP_LOOP_UOPS (PAPI_MAP_LOOP_UOPS_idx | PAPI_PRESET_MASK) /* Map loops entered */
 
 #define PAPI_END     (PAPI_END_idx  | PAPI_PRESET_MASK)	/*This should always be last! */
 
