@@ -248,6 +248,8 @@ typedef enum {
 	PFM_PMU_INTEL_BDW,		/* Intel Broadwell */
 
 	PFM_PMU_ARM_XGENE,		/* Applied Micro X-Gene (ARMv8) */
+	PFM_PMU_ARM_THUNDERX,
+	PFM_PMU_ARM_THUNDERX2,
 
 	PFM_PMU_INTEL_HSWEP_UNC_CB0,	/* Intel Haswell-EP C-Box core 0 uncore */
 	PFM_PMU_INTEL_HSWEP_UNC_CB1,	/* Intel Haswell-EP C-Box core 1 uncore */
