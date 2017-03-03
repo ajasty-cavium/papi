@@ -19,7 +19,7 @@ static int *num_fds;
 static int cmax;
 const char **eventnames;
 static long long **cntr;
-static int secs, argstart, core = -1;
+static int secs, argstart, core = -1, repeat = 1;
 
 void printerr(const char *format,...)
 {
@@ -84,7 +84,7 @@ int collect()
 			if (ret == -1)
 				printerr("cannot read event %d:%d.\n", i, ret);
 		}
-		printf("%lu\t\t", cpufd[i].values[0]);
+		printf("%lu ", cpufd[i].values[0]);
 	}
 	printf("\n");
 	}
@@ -95,7 +95,7 @@ int collect()
 
 int main(int argc, const char **argv)
 {
-	int i;
+	int i, j;
 
 	for (argstart = 1; argstart < argc; argstart++) {
 		if (argv[argstart][0] != '-') break;
@@ -105,6 +105,9 @@ int main(int argc, const char **argv)
 			continue;
 		case 's':
 			secs = atoi(argv[++argstart]);
+			continue;
+		case 'r':
+			repeat = atoi(argv[++argstart]);
 			continue;
 		}
 	}
@@ -118,7 +121,8 @@ int main(int argc, const char **argv)
 	for (i = argstart; i < argc; i++) {
 		initialize(i);
 
-		collect();
+		for (j = 0; j < repeat; j++)
+			collect();
 
 		pfm_terminate();
 	}
