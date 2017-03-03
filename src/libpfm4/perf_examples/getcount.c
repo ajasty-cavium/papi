@@ -19,7 +19,7 @@ static int *num_fds;
 static int cmax;
 const char **eventnames;
 static long long **cntr;
-static int secs, argstart, core = -1, repeat = 1;
+static int secs = 1, argstart, core = -1, repeat = 1, aggregate = 0;
 
 void printerr(const char *format,...)
 {
@@ -64,6 +64,7 @@ int initialize(int eventidx)
 int collect()
 {
 	int ret, i, c;
+	long long accum[8] = { 0 };
 	perf_event_desc_t *cpufd;
 
 	for (c = 0; c < cmax; c++) {
@@ -82,17 +83,22 @@ int collect()
 	sleep(secs);
 	for (c = 0; c < cmax; c++) {
 		if ((core != -1) && (core != c)) continue;
-	for (i = 0; i < num_fds[c]; i++) {
-		ret = read(cpufd[i].fd, cpufd[i].values, sizeof(cpufd[i].values));
-		if (ret != sizeof(cpufd[i].values)) {
-			if (ret == -1)
-				printerr("cannot read event %d:%d.\n", i, ret);
+		for (i = 0; i < num_fds[c]; i++) {
+			ret = read(cpufd[i].fd, cpufd[i].values, sizeof(cpufd[i].values));
+			if (ret != sizeof(cpufd[i].values)) {
+				if (ret == -1)
+					printerr("cannot read event %d:%d.\n", i, ret);
+			}
+			if (aggregate) accum[i] += cpufd[i].values[0];
+			else printf("%lu ", cpufd[i].values[0]);
+
 		}
-		printf("%lu ", cpufd[i].values[0]);
+		if (!aggregate) printf("\n");
 	}
-	printf("\n");
+	if (aggregate) {
+		for (c = 0; c < i; c++) printf("%llu ", accum[c]);
+		printf("\n");
 	}
-	//fprintf(stderr, "\n");
 
 	return 0;
 }
@@ -112,6 +118,9 @@ int main(int argc, const char **argv)
 			continue;
 		case 'r':
 			repeat = atoi(argv[++argstart]);
+			continue;
+		case 'a':
+			aggregate = 1;
 			continue;
 		}
 	}
