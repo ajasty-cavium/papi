@@ -73,6 +73,10 @@ int collect()
 		ret = ioctl(cpufd[i].fd, PERF_EVENT_IOC_ENABLE, 0);
 		if (ret)
 			printerr("Cannot enable event %s.\n", cpufd[i].name);
+
+		ret = ioctl(cpufd[i].fd, PERF_EVENT_IOC_RESET, 0);
+		if (ret)
+			printerr("Cannot reset event %s.\n", cpufd[i].name);
 	}
 	}
 	sleep(secs);
