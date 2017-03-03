@@ -19,6 +19,7 @@ static int *num_fds;
 static int cmax;
 const char **eventnames;
 static long long **cntr;
+static int secs, argstart, core = -1;
 
 void printerr(const char *format,...)
 {
@@ -28,7 +29,7 @@ void printerr(const char *format,...)
 	exit(-1);	
 }
 
-int initialize()
+int initialize(int eventidx)
 {
 	int ret, i, j;
 
@@ -40,8 +41,10 @@ int initialize()
 	num_fds = calloc(cmax, sizeof(int));
 
 	for (i = 0; i < cmax; i++) {
+		if ((core != -1) && (core != i)) continue;
+
 		perf_event_desc_t *cpufd;
-		ret = perf_setup_list_events(eventnames[1], &all_fds[i], &num_fds[i]);
+		ret = perf_setup_list_events(eventnames[eventidx], &all_fds[i], &num_fds[i]);
 		if (ret || (num_fds == 0)) 
 			printerr("Error setting up event: %i %i.\n", ret, num_fds);
 		cpufd = all_fds[i];
@@ -64,6 +67,7 @@ int collect()
 	perf_event_desc_t *cpufd;
 
 	for (c = 0; c < cmax; c++) {
+		if ((core != -1) && (core != c)) continue;
 	cpufd = all_fds[c];
 	for (i = 0; i < num_fds[c]; i++) {
 		ret = ioctl(cpufd[i].fd, PERF_EVENT_IOC_ENABLE, 0);
@@ -71,8 +75,9 @@ int collect()
 			printerr("Cannot enable event %s.\n", cpufd[i].name);
 	}
 	}
-	sleep(1);
+	sleep(secs);
 	for (c = 0; c < cmax; c++) {
+		if ((core != -1) && (core != c)) continue;
 	for (i = 0; i < num_fds[c]; i++) {
 		ret = read(cpufd[i].fd, cpufd[i].values, sizeof(cpufd[i].values));
 		if (ret != sizeof(cpufd[i].values)) {
@@ -90,15 +95,32 @@ int collect()
 
 int main(int argc, const char **argv)
 {
+	int i;
+
+	for (argstart = 1; argstart < argc; argstart++) {
+		if (argv[argstart][0] != '-') break;
+		switch (argv[argstart][1]) {
+		case 'c':
+			core = atoi(argv[++argstart]);
+			continue;
+		case 's':
+			secs = atoi(argv[++argstart]);
+			continue;
+		}
+	}
+
 	cmax = sysconf(_SC_NPROCESSORS_ONLN);
 
 	cntr = (long long**) malloc(sizeof(long long) * cmax);
 
 	eventnames = argv;
-	initialize();
 
-	collect();
+	for (i = argstart; i < argc; i++) {
+		initialize(i);
 
-	pfm_terminate();
+		collect();
+
+		pfm_terminate();
+	}
 	return 0;
 }
