@@ -31,7 +31,7 @@ void printerr(const char *format,...)
 
 int initialize(int eventidx)
 {
-	int ret, i, j;
+	int ret, c, j;
 
 	ret = pfm_initialize();
 	if (ret != PFM_SUCCESS)
@@ -40,22 +40,24 @@ int initialize(int eventidx)
 	all_fds = calloc(cmax, sizeof(perf_event_desc_t*));
 	num_fds = calloc(cmax, sizeof(int));
 
-	for (i = 0; i < cmax; i++) {
-		if ((core != -1) && (core != i)) continue;
+	/* For each core */
+	for (c = 0; c < cmax; c++) {
+		if ((core != -1) && (core != c)) continue;
 
 		perf_event_desc_t *cpufd;
-		ret = perf_setup_list_events(eventnames[eventidx], &all_fds[i], &num_fds[i]);
+		ret = perf_setup_list_events(eventnames[eventidx], &all_fds[c], &num_fds[c]);
 		if (ret || (num_fds == 0)) 
 			printerr("Error setting up event: %i %i.\n", ret, num_fds);
-		cpufd = all_fds[i];
+		cpufd = all_fds[c];
 		cpufd[0].fd = -1;
-		for (j = 0; j < num_fds[i]; j++) {
+		/* For each event */
+		for (j = 0; j < num_fds[c]; j++) {
 			//fprintf(stderr, "values: %s %x.\n", cpufd[j].name, cpufd[j].idx);
-			cpufd[j].hw.disabled = 0;
+			cpufd[j].hw.disabled = 1;
 			cpufd[j].hw.read_format = PERF_FORMAT_TOTAL_TIME_RUNNING;
-			cpufd[j].fd = perf_event_open(&cpufd[j].hw, -1, i, -1, 0);
+			cpufd[j].fd = perf_event_open(&cpufd[j].hw, -1, c, -1, 0);
 			if (cpufd[j].fd == -1)
-				printerr("Cannot attach event to CPU%d %s.\n", i, cpufd[i].name);
+				printerr("Cannot attach event to CPU%d %s.\n", c, cpufd[c].name);
 		}
 	}
 	return 0;
@@ -69,21 +71,22 @@ int collect()
 
 	for (c = 0; c < cmax; c++) {
 		if ((core != -1) && (core != c)) continue;
-	cpufd = all_fds[c];
-	for (i = 0; i < num_fds[c]; i++) {
-		ret = ioctl(cpufd[i].fd, PERF_EVENT_IOC_ENABLE, 0);
-		if (ret)
-			printerr("Cannot enable event %s.\n", cpufd[i].name);
+		cpufd = all_fds[c];
+		for (i = 0; i < num_fds[c]; i++) {
+			ret = ioctl(cpufd[i].fd, PERF_EVENT_IOC_ENABLE, 0);
+			if (ret)
+				printerr("Cannot enable event %s.\n", cpufd[i].name);
 
-		ret = ioctl(cpufd[i].fd, PERF_EVENT_IOC_RESET, 0);
-		if (ret)
-			printerr("Cannot reset event %s.\n", cpufd[i].name);
-	}
+			ret = ioctl(cpufd[i].fd, PERF_EVENT_IOC_RESET, 0);
+			if (ret)
+				printerr("Cannot reset event %s.\n", cpufd[i].name);
+		}
 	}
 	sleep(secs);
 	for (c = 0; c < cmax; c++) {
 		if ((core != -1) && (core != c)) continue;
 		for (i = 0; i < num_fds[c]; i++) {
+			cpufd = all_fds[c];
 			ret = read(cpufd[i].fd, cpufd[i].values, sizeof(cpufd[i].values));
 			if (ret != sizeof(cpufd[i].values)) {
 				if (ret == -1)
