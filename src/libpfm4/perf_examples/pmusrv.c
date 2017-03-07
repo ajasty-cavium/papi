@@ -17,6 +17,15 @@
 
 #include "perf_util.h"
 
+#if defined(__aarch64__)
+#define	ARCH_CODE 'a'
+#elif defined(__amd64__)
+#define ARCH_CODE 'x'
+#else
+#error ARCH_CODE not defined
+#endif
+
+
 static perf_event_desc_t **all_fds;
 static int *num_fds;
 static int cmax;
@@ -150,6 +159,7 @@ int collect(char *buffer)
 int main(int argc, const char **argv)
 {
 	int cfd, lport = 9999;
+	char arch_code = ARCH_CODE;
 	struct sockaddr_in addr;
 	socklen_t addrlen = sizeof(addr);
 
@@ -189,6 +199,7 @@ int main(int argc, const char **argv)
 
 	if (cfd == -1) printerr("Error accepting client: %s.\n", strerror(errno));
 
+	write(cfd, &arch_code, 1);
 	do {
 	    count = 0;
 	if (read(cfd, &count, 4) != 4) {
@@ -203,7 +214,7 @@ int main(int argc, const char **argv)
 	    read(cfd, s, 1);
 	} while (*s);*/
 	spec[count] = '\0';
-	fprintf(stderr, "read spec %i %s.\n", count, spec);
+	//fprintf(stderr, "read spec %i %s.\n", count, spec);
 
 	if (initialize(spec) < 0) {
 	    close(cfd);
@@ -217,7 +228,7 @@ int main(int argc, const char **argv)
 	write(cfd, &count, sizeof(int));
 	write(cfd, spec, count);
 	//pfm_terminate();
-	fprintf(stderr, "wrote spec %i %s.\n", count, spec);
+	//fprintf(stderr, "wrote spec %i %s.\n", count, spec);
 	} while (1);
 	} while (1);
 
