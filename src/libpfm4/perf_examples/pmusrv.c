@@ -87,6 +87,21 @@ int initialize(const char *eventstring)
 	return 0;
 }
 
+int close_all()
+{
+    int c, j;
+    for (c = 0; c < cmax; c++) {
+	if ((core != -1) && (core != c)) continue;
+	perf_event_desc_t *cpufd = all_fds[c];
+	for (j = 0; j < num_fds[c]; j++) {
+	    close(cpufd[j].fd);
+	}
+    }
+    free(num_fds);
+    free (all_fds);
+    return 0;
+}
+
 int collect(char *buffer)
 {
 	int ret, i, c;
@@ -180,13 +195,14 @@ int main(int argc, const char **argv)
 	    close(cfd);
 	    break;
 	}
-	if (read(cfd, spec, count) != count) printerr("Error reading spec %i: %s.\n", count, strerror(errno));
+	int ret = read(cfd, spec, count);
+	if (ret != count) printerr("Error reading spec %i/%i: %s.\n", ret, count, strerror(errno));
 	/*read(cfd, spec, count);
 	char *s = spec;
 	do {
 	    read(cfd, s, 1);
 	} while (*s);*/
-	spec[count - 1] = '\0';
+	spec[count] = '\0';
 	fprintf(stderr, "read spec %i %s.\n", count, spec);
 
 	if (initialize(spec) < 0) {
@@ -195,10 +211,12 @@ int main(int argc, const char **argv)
 	}
 
 	collect(spec);
+	close_all();
 
 	count = strlen(spec) + 1;
 	write(cfd, &count, sizeof(int));
 	write(cfd, spec, count);
+	//pfm_terminate();
 	fprintf(stderr, "wrote spec %i %s.\n", count, spec);
 	} while (1);
 	} while (1);
