@@ -40,15 +40,15 @@ def main ():
     try:
         while True:
             k = sendQuery(sock, query_toplev)
-            ipc = float(k[1]) / float(k[0]) * 100.0
+            ipc = float(k[1]) / float(k[0])
             fes = float(k[2]) / float(k[0]) * 100.0
             bes = float(k[3]) / float(k[0]) * 100.0
             out = format("IPC=%2.2f - FRONTEND=%2.2f - BACKEND=%2.2f. " % (ipc, fes, bes))
             sys.stdout.write(out)
             k = sendQuery(sock, query_br)
-            brpred = (float(k[0]) / float(k[1])) / 100.0
-            dmiss = (float(k[2]) / float(k[3])) / 100.0
-            imiss = (float(k[4]) / float(k[5])) / 100.0
+            brpred = (float(k[0]) / float(k[1])) * 100.0
+            dmiss = (float(k[2]) / float(k[3])) * 100.0
+            imiss = (float(k[4]) / float(k[5])) * 100.0
             out = format("Branch mispred rate=%2.2f, " % brpred)
             sys.stdout.write(out)
             out = format("L1I miss=%2.2f, " % imiss)
