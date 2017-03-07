@@ -46,6 +46,9 @@ void makesock(int port)
     if (bind(sockfd, (struct sockaddr*)&addr, sizeof(addr)))
         printerr("Bind failure: %s\n", strerror(errno));
     listen(sockfd, 1);
+
+    if (setsockopt(sockfd, SOL_SOCKET, SO_REUSEADDR, &(int){ 1 }, sizeof(int)) < 0)
+	    printerr("setsockopt(SO_REUSEADDR) failed");
 }
 
 int initialize(const char *eventstring)
@@ -65,8 +68,10 @@ int initialize(const char *eventstring)
 
 		perf_event_desc_t *cpufd;
 		ret = perf_setup_list_events(eventstring, &all_fds[c], &num_fds[c]);
-		if (ret || (num_fds == 0)) 
-			printerr("Error setting up event: %i %i.\n", ret, num_fds);
+		if (ret || (num_fds == 0)) {
+			printf("Error setting up event: %i %i.\n", ret, num_fds[c]);
+			return -1;
+		}
 		cpufd = all_fds[c];
 		cpufd[0].fd = -1;
 		/* For each event */
@@ -175,12 +180,19 @@ int main(int argc, const char **argv)
 	    close(cfd);
 	    break;
 	}
-	//if (read(cfd, spec, count) != count) printerr("Error reading spec %i: %s.\n", count, strerror(errno));
-	read(cfd, spec, count);
+	if (read(cfd, spec, count) != count) printerr("Error reading spec %i: %s.\n", count, strerror(errno));
+	/*read(cfd, spec, count);
+	char *s = spec;
+	do {
+	    read(cfd, s, 1);
+	} while (*s);*/
 	spec[count - 1] = '\0';
 	fprintf(stderr, "read spec %i %s.\n", count, spec);
 
-	initialize(spec);
+	if (initialize(spec) < 0) {
+	    close(cfd);
+	    continue;
+	}
 
 	collect(spec);
 
