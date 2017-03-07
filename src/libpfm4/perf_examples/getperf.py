@@ -33,21 +33,27 @@ def main ():
     server_address = (sys.argv[1], 9999)
 
     query_toplev = "CPU_CYCLES,INST_RETIRED,STALLED_CYCLES_FRONTEND,STALLED_CYCLES_BACKEND\0"
-    query_br = "BRANCH_MISPRED,BRANCH_PRED"
+    query_br = "BRANCH_MISPRED,BRANCH_PRED,L1I_CACHE_REFILL,L1I_CACHE_ACCESS,L1D_CACHE_REFILL,L1D_CACHE_ACCESS\0"
     sock = socket(AF_INET, SOCK_STREAM)
     sock.connect(server_address)
 
     try:
         while True:
             k = sendQuery(sock, query_toplev)
-            ipc = float(k[1]) / float(k[0]) * 100.0
+            ipc = float(k[1]) / float(k[0])
             fes = float(k[2]) / float(k[0]) * 100.0
             bes = float(k[3]) / float(k[0]) * 100.0
-            out = format("IPC=%2.2f - FRONTEND=%2.2f - BACKEND=%2.2f. " % (ipc, fes, bes))
+            out = format("IPC=%2.2f - FRONTEND=%2.2f%% - BACKEND=%2.2f%%. " % (ipc, fes, bes))
             sys.stdout.write(out)
             k = sendQuery(sock, query_br)
-            brpred = (float(k[0]) / float(k[1])) / 100.0
-            out = format("Branch mispred rate=%2.2f.\r" % brpred)
+            brpred = (float(k[0]) / float(k[1])) * 100.0
+            dmiss = (float(k[2]) / float(k[3])) * 100.0
+            imiss = (float(k[4]) / float(k[5])) * 100.0
+            out = format("Branch mispred rate=%2.2f%%, " % brpred)
+            sys.stdout.write(out)
+            out = format("L1I miss=%2.2f%%, " % imiss)
+            sys.stdout.write(out)
+            out = format("L1D miss=%2.2f%%.\r" % dmiss)
             sys.stdout.write(out)
             sys.stdout.flush()
 
