@@ -141,16 +141,20 @@ int collect(char *buffer)
 					printerr("cannot read event %d:%d.\n", i, ret);
 			}
 			if (aggregate) accum[i] += cpufd[i].values[0];
-			else printf("%lu ", cpufd[i].values[0]);
+			else accum[i] = cpufd[i].values[0];
 
 		}
-		if (!aggregate) printf("\n");
 	}
 	if (aggregate) {
 		for (c = 0; c < i; c++) { 
 		    int l = sprintf(buffer, "%llu ", accum[c]);
 		    buffer += l;
 		}
+	} else {
+	    for (c = 0; c < i; c++) { 
+		int l = sprintf(buffer, "%llu ", accum[c]);
+		buffer += l;
+	    }
 	}
 
 	return 0;
@@ -203,6 +207,7 @@ int main(int argc, const char **argv)
 	    write(cfd, &cmax, 4);
 
 	    do {
+		int repeat = 0;
 		count = 0;
 		if (read(cfd, &count, 4) != 4) {
 		    close(cfd);
@@ -214,16 +219,20 @@ int main(int argc, const char **argv)
 			break;
 		    }
 		    core = count;
-		    continue;
+		    printf("core = %i.\n", core);
+		    repeat = 1;
 		}
 		if (count == -10) {
 		    aggregate = 0;
-		    continue;
+		    printf("aggregate off.\n");
+		    repeat = 1;
 		}
 		if (count == -11) {
 		    aggregate = 1;
-		    continue;
+		    printf("aggregate on.\n");
+		    repeat = 1;
 		}
+		if (repeat) continue;
 		int ret = read(cfd, spec, count);
 		if (ret != count) {
 		    fprintf(stderr, "Error reading spec %i/%i: %s %s.\n", ret, count, spec, strerror(errno));
