@@ -194,42 +194,52 @@ int main(int argc, const char **argv)
 	do {
 	    int count;
 	    char spec[1024];
-	cfd = accept(sockfd, &addr, &addrlen);
-	fprintf(stderr, "Connection: %x.\n", addr.sin_addr.s_addr);
+	    cfd = accept(sockfd, &addr, &addrlen);
+	    fprintf(stderr, "Connection: %x.\n", addr.sin_addr.s_addr);
 
-	if (cfd == -1) printerr("Error accepting client: %s.\n", strerror(errno));
+	    if (cfd == -1) printerr("Error accepting client: %s.\n", strerror(errno));
 
-	write(cfd, &arch_code, 1);
-	do {
-	    count = 0;
-	if (read(cfd, &count, 4) != 4) {
-	    close(cfd);
-	    break;
-	}
-	int ret = read(cfd, spec, count);
-	if (ret != count) printerr("Error reading spec %i/%i: %s.\n", ret, count, strerror(errno));
-	/*read(cfd, spec, count);
-	char *s = spec;
-	do {
-	    read(cfd, s, 1);
-	} while (*s);*/
-	spec[count] = '\0';
-	//fprintf(stderr, "read spec %i %s.\n", count, spec);
+	    write(cfd, &arch_code, 1);
 
-	if (initialize(spec) < 0) {
-	    close(cfd);
-	    continue;
-	}
+	    do {
+		count = 0;
+		if (read(cfd, &count, 4) != 4) {
+		    close(cfd);
+		    break;
+		}
+		if (count == -9) {
+		    if (read(cfd, &count, 4) != 4) {
+			close(cfd);
+			break;
+		    }
+		    core = count;
+		    continue;
+		}
+		if (count == -10) {
+		    aggregate = 0;
+		    continue;
+		}
+		if (count == -11) {
+		    aggregate = 1;
+		    continue;
+		}
+		int ret = read(cfd, spec, count);
+		if (ret != count) printerr("Error reading spec %i/%i: %s.\n", ret, count, strerror(errno));
 
-	collect(spec);
-	close_all();
+		spec[count] = '\0';
 
-	count = strlen(spec) + 1;
-	write(cfd, &count, sizeof(int));
-	write(cfd, spec, count);
-	//pfm_terminate();
-	//fprintf(stderr, "wrote spec %i %s.\n", count, spec);
-	} while (1);
+		if (initialize(spec) < 0) {
+		    close(cfd);
+		    continue;
+		}
+
+		collect(spec);
+		close_all();
+
+		count = strlen(spec) + 1;
+		write(cfd, &count, sizeof(int));
+		write(cfd, spec, count);
+	    } while (1);
 	} while (1);
 
 	pfm_terminate();
