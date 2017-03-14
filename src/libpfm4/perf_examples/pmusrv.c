@@ -200,6 +200,7 @@ int main(int argc, const char **argv)
 	    if (cfd == -1) printerr("Error accepting client: %s.\n", strerror(errno));
 
 	    write(cfd, &arch_code, 1);
+	    write(cfd, &cmax, 4);
 
 	    do {
 		count = 0;
@@ -224,7 +225,11 @@ int main(int argc, const char **argv)
 		    continue;
 		}
 		int ret = read(cfd, spec, count);
-		if (ret != count) printerr("Error reading spec %i/%i: %s.\n", ret, count, strerror(errno));
+		if (ret != count) {
+		    fprintf(stderr, "Error reading spec %i/%i: %s %s.\n", ret, count, spec, strerror(errno));
+		    close(cfd);
+		    break;
+		}
 
 		spec[count] = '\0';
 
