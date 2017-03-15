@@ -169,32 +169,32 @@ static const arm_entry_t arm_thunderx2_pe[]={
 	 .code = 0x24,
 	 .desc = "Op dispatch stalled cycle",
 	},
-	{.name = "L1D_TLB,
+	{.name = "L1D_TLB",
 	 .modmsk = ARMV8_ATTRS,
 	 .code = 0x25,
 	 .desc = "Level 1 data cache TLB access"
 	},
-	{.name = "L1I_TLB,
+	{.name = "L1I_TLB",
 	 .modmsk = ARMV8_ATTRS,
 	 .code = 0x26,
 	 .desc = "Level 1 instruction cache TLB access"
 	},
-	{.name = "L2D_TLB_REFILL,
+	{.name = "L2D_TLB_REFILL",
 	 .modmsk = ARMV8_ATTRS,
 	 .code = 0x2d,
 	 .desc = "Level 2 data cache TLB refill"
 	},
-	{.name = "L2I_TLB_REFILL,
+	{.name = "L2I_TLB_REFILL",
 	 .modmsk = ARMV8_ATTRS,
 	 .code = 0x2e,
 	 .desc = "Level 2 instruction cache TLB refill"
 	},
-	{.name = "L2D_TLB,
+	{.name = "L2D_TLB",
 	 .modmsk = ARMV8_ATTRS,
 	 .code = 0x2f,
 	 .desc = "Level 2 data cache TLB access"
 	},
-	{.name = "L2I_TLB,
+	{.name = "L2I_TLB",
 	 .modmsk = ARMV8_ATTRS,
 	 .code = 0x30,
 	 .desc = "Level 2 instruction cache TLB access"
