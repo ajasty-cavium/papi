@@ -14,6 +14,7 @@
 #include <sys/socket.h>
 //#include <linux/in.h>
 #include <netinet/in.h>
+#include <signal.h>
 
 #include "perf_util.h"
 
@@ -160,6 +161,10 @@ int collect(char *buffer)
 	return 0;
 }
 
+void sigpipe_handler(int signum) {
+	return;
+}
+
 int main(int argc, const char **argv)
 {
 	int cfd, lport = 9999;
@@ -188,6 +193,7 @@ int main(int argc, const char **argv)
 		}
 	}
 
+	signal(SIGPIPE, sigpipe_handler);
 
 	cmax = sysconf(_SC_NPROCESSORS_ONLN);
 
@@ -251,8 +257,12 @@ int main(int argc, const char **argv)
 		close_all();
 
 		count = strlen(spec) + 1;
-		write(cfd, &count, sizeof(int));
-		write(cfd, spec, count);
+		//int error_code, error_code_size = sizeof(error_code);
+		//getsockopt(cfd, SOL_SOCKET, SO_ERROR, &error_code, &error_code_size);
+		ret = write(cfd, &count, sizeof(int));
+		if (ret < (int)sizeof(int)) break;
+		ret = write(cfd, spec, count);
+		if (ret < count) break;
 	    } while (1);
 	} while (1);
 

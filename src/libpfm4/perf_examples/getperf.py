@@ -108,7 +108,7 @@ def do_x86_64 (sock, mode, raw):
     finally:
         sys.stdout.flush()
 
-def main ():
+def main (stdscr):
     mode = 'm'
     coreid = -1
     sock = socket(AF_INET, SOCK_STREAM)
@@ -144,7 +144,7 @@ def main ():
         curses.initscr()
         curses.noecho()
         curses.cbreak()
-        stdscr = curses.initscr()
+        #stdscr = curses.initscr()
 
     sock.connect(server_address)
 
@@ -159,7 +159,8 @@ def main ():
         out = do_get_perf (sock, mode, raw, arch)
 
         out += terminator
-        if raw == True:
+        if raw == True or terminator == '\n':
+	    out += '\r'
             sys.stdout.write(out)
             sys.stdout.flush()
         else:
@@ -173,5 +174,5 @@ def main ():
                 mode = 'm'
 
 if __name__ == "__main__":
-    main()
+    curses.wrapper(main)
 
